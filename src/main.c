@@ -18,6 +18,11 @@ Result import(u64 tid, u8 op, u8 *workbuf, char *ext){
 	
 	memset(fpath, 0, 64);
 	sprintf(fpath,"sdmc:/%08lX%s",(u32)tid, ext);
+   	if(access(fpath, F_OK ) == -1 ) {
+		printf("%s missing on SD\n",fpath);
+		return 1;
+	}
+
 	memset(filepath16, 0, sizeof(filepath16));
 	units = utf8_to_utf16(filepath16, (u8*)(fpath+5), len);
 	
@@ -55,10 +60,10 @@ Result menuUpdate(int cursor){
 	consoleClear();
 	printf("Frogtool - zoogie\n\n");
 	char menu[menu_size][128] = {
-		"IMPORT  patched DS Download Play",
 		"EXPORT  clean   DS Download Play",
-		"RESTORE clean   DS Download Play",
-		"BOOT    patched DS Download Play"
+		"IMPORT  patched DS Download Play",
+		"BOOT    patched DS Download Play",
+		"RESTORE clean   DS Download Play"
 	};
 	
 	for(int i=0;i<menu_size;i++){
@@ -119,12 +124,13 @@ int main(int argc, char* argv[])
 			break; // break in order to return to hbmenu
 		if(kDown & KEY_A){
 			switch(cursor){
-				case 0: import(tid, op, buf, ".bin.patched"); break;
-				case 1: export(tid, op, buf, ".bin"); break;
-				case 2: import(tid, op, buf, ".bin"); break;
-				case 3: printf("Booting dlp now ...\n");
+				case 0: export(tid, op, buf, ".bin"); break;
+				case 1: import(tid, op, buf, ".bin.patched"); break;
+				case 2: printf("Booting dlp now ...\n");
 						NS_RebootToTitle(0, tid); 
 						while(1)gspWaitForVBlank();
+                        break;
+				case 3: import(tid, op, buf, ".bin"); break;
 				default:;
 			}
 			waitKey();
